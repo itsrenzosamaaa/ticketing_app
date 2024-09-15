@@ -1,44 +1,39 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 
-export default function Home() {
-  const [organizer, setOrganizer] = useState(null);
-  const [error, setError] = useState(null);
+const EventsList = () => {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchOrganizer() {
+    const fetchEvents = async () => {
       try {
-        const res = await axios.get('/api/events'); // Adjust the URL if needed
-        setOrganizer(res.data);
+        const response = await fetch('/api/events');
+        const data = await response.json();
+        setEvents(data);  // Assuming your API returns a list of events
       } catch (error) {
-        setError('Failed to fetch organizer data');
+        console.error('Error fetching events:', error);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
 
-    fetchOrganizer();
-  }, []); // Empty dependency array means this useEffect runs once on component mount
+    fetchEvents();
+  }, []);
 
-  if (error) return <div>{error}</div>;
+  if (loading) return <p>Loading...</p>;
 
   return (
     <div>
-      <h1>Organizer Details</h1>
-      {organizer ? (
-        <div>
-          <h2>{organizer.name}</h2>
-          <p><a href={organizer.url} target="_blank" rel="noopener noreferrer">{organizer.url}</a></p>
-          <p>Vanity URL: <a href={`https://${organizer.vanity_url}`} target="_blank" rel="noopener noreferrer">{organizer.vanity_url}</a></p>
-          <p>Number of Past Events: {organizer.num_past_events}</p>
-          <p>Number of Future Events: {organizer.num_future_events}</p>
-          <div>
-            <img src={organizer.logo.url} alt={organizer.name} width={200} height={200} />
-          </div>
-        </div>
-      ) : (
-        <p>Loading...</p>
-      )}
+      <h1>Events</h1>
+      <ul>
+        {events.map((event) => (
+          <li key={event.id}>{event.name}</li>
+        ))}
+      </ul>
     </div>
   );
-}
+};
+
+export default EventsList;
