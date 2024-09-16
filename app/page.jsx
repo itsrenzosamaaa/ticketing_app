@@ -1,56 +1,91 @@
-'use client';
+'use client'
 
 import { useEffect, useState } from 'react';
+import axios from 'axios';
 
-const EventsList = () => {
-  const [categories, setCategories] = useState([]);
+const EventPage = () => {
+  const [eventData, setEventData] = useState(null);
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Fetch event data when the component mounts
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/events');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        console.log('Fetched Data:', data);
-        setCategories(data || []);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-        setError(error.message);
-      } finally {
+        // Fetch event data
+        const eventResponse = await axios.get('/api/events');
+        setEventData(eventResponse.data);
+
+        // Fetch user data
+        const userResponse = await axios.get('/api/users');
+        setUserData(userResponse.data);
+
+        setLoading(false);  // Stop loading once data is fetched
+      } catch (err) {
+        setError('Failed to fetch data');
         setLoading(false);
       }
     };
 
-    fetchEvents();
+    fetchData();
   }, []);
 
-  if (loading) return <p>Loading...</p>;
+  // Render loading state
+  if (loading) {
+    return <p>Loading...</p>;
+  }
 
-  if (error) return <p>Error: {error}</p>;
+  // Render error state
+  if (error) {
+    return <p>{error}</p>;
+  }
 
+  // Render event data if available
   return (
     <div>
-      <h1>Events</h1>
-      {categories.length === 0 ? (
-        <p>No events found.</p>
+      {userData && (
+        <div>
+          <h2>User Info</h2>
+          <p><strong>Name:</strong> {userData.name}</p>
+          <p><strong>Email:</strong> {userData.email}</p>
+          {userData.image && (
+            <img src={userData.image} alt={`${userData.name}'s profile`} width="100" />
+          )}
+        </div>
+      )}
+
+      {eventData ? (
+        <div>
+          <h1>{eventData.name}</h1>
+          <p>{eventData.description}</p>
+          <p>
+            <strong>Event Date:</strong> {new Date(eventData.startTime).toLocaleString()}
+          </p>
+          <p>
+            <strong>End Date:</strong> {new Date(eventData.endTime).toLocaleString()}
+          </p>
+          <p>
+            <strong>Capacity:</strong> {eventData.capacity}
+          </p>
+          <p>
+            <strong>Status:</strong> {eventData.status}
+          </p>
+          <p>
+            <strong>Currency:</strong> {eventData.currency}
+          </p>
+          <p>
+            <strong>Summary:</strong> {eventData.summary}
+          </p>
+          <a href={eventData.url} target="_blank" rel="noopener noreferrer">
+            View Event on Eventbrite
+          </a>
+        </div>
       ) : (
-        <ul>
-          {categories.map((category) => (
-            <div style={{ padding: '1rem' }}>
-              <li key={category.id}>
-                <h2>{category.id}</h2>
-                <strong>{category.name}</strong>
-              </li>
-            </div>
-          ))}
-        </ul>
+        <p>No event data available</p>
       )}
     </div>
   );
 };
 
-export default EventsList;
+export default EventPage;
