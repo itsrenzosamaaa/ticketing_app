@@ -8,6 +8,12 @@ export async function GET({ url }) {
     const clientSecret = process.env.EVENTBRITE_CLIENT_SECRET;
     const redirectUri = process.env.EVENTBRITE_REDIRECT_URI;
 
+    console.log(urlParams);
+    console.log(code);
+    console.log(clientId);
+    console.log(clientSecret);
+    console.log(redirectUri);
+
     try {
         const response = await axios.post('https://www.eventbrite.com/oauth/token', new URLSearchParams({
             grant_type: 'authorization_code',
